@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PlacesUtil {
 	
-	final static String PLACES_URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=#S_STR#&inputtype=textquery&fields=formatted_address,geometry,name,place_id,type&key=AIzaSyAkU3ZQYNsNHcTjUCRkfvq0OmcIkCJ9_Fc";
+	final static String PLACES_URL = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=#S_STR#&inputtype=textquery&fields=formatted_address,geometry,name,place_id,type&key=#KEY#";
 	final static String PLACES_URL_WTH_LOC = PLACES_URL + "&locationbias=point:#LAT#,#LNG#"; 
 	
 	private static ObjectMapper mapper = new ObjectMapper();
