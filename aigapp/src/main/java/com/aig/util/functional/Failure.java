@@ -1,0 +1,89 @@
+package com.aig.util.functional;
+
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+/**
+ * A Try instance that indicates a failed execution.
+ *
+ * @param <T> the return type of the expression result.
+ */
+class Failure<T> implements Try<T> {
+    private Throwable t;
+
+
+    protected Failure(Throwable t) {
+        this.t = t;
+    }
+
+    @Override
+    public T get() {
+        throw new RuntimeException(t);
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return false;
+    }
+
+    @Override
+    public boolean isFailure() {
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+	@Override
+    public <U> Try<U> map(TryFunction<? super T, U> fn) {
+        return (Try<U>) this;
+    }
+
+    @SuppressWarnings("unchecked")
+	@Override
+    public <U> Try<U> flatMap(TryFunction<? super T, Try<U>> fn) {
+        return (Try<U>) this;
+    }
+
+    @Override
+    public Optional<T> toOptional() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Try<T> filter(Predicate<? super T> p) {
+        return this;
+    }
+
+    @Override
+    public T getOrElse(Supplier<T> fn) {
+        return fn.get();
+    }
+
+    @Override
+    public T getOrElse(T value) {
+        return value;
+    }
+
+    @Override
+    public Try<T> orElse(Supplier<Try<T>> fn) {
+        return fn.get();
+    }
+
+    @Override
+    public Try<T> recover(TryFunction<? super Throwable, T> fn) {
+        try {
+            return new Success<T>(fn.apply(t));
+        } catch (Throwable e) {
+            return new Failure<T>(e);
+        }
+    }
+
+    @Override
+    public Try<T> recoverWith(TryFunction<? super Throwable, Try<T>> fn) {
+        try {
+            return fn.apply(t);
+        } catch (Throwable t) {
+            return new Failure<T>(t);
+        }
+    }
+}

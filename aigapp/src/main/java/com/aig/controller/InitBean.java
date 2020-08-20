@@ -10,9 +10,12 @@ public class InitBean implements InitializingBean {
 	
 	@Value("classpath:test1.txt")
 	Resource testRes;
+	@Value("${glms.query.headers}")
+	String query;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		System.out.println( query );
 		int size = testRes.getInputStream().available();
 		byte [] data = new byte[ size ];
 		testRes.getInputStream().read(data);

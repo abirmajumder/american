@@ -1,1 +1,12 @@
-name = abirlal majumder
+Request To Service For Grouping Headers
+	Method 		: GET
+	Parameters  : accountid, brokerid, sovname, sovyear
+
+
+Service Response
+
+{
+	"status" : "Success|Failure",
+	"data"   : { "Matched" : [ matched_header_list_array ] , "Unmatched" : [ unmatched_header_list_array ], "Partial" : [ partially_matched_header_list_array ] }
+	"errors" : { "field_1" : "err_msg_1", "field_2" : "err_msg_2" ... },
+}

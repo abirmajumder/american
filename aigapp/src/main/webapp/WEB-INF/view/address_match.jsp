@@ -187,7 +187,7 @@
 			</div>		
 			<c:forEach items="${tracer}" var='tcr' varStatus="loop">
 				<div class="row">
-					<div class="col-md-12"><h5 style="color: blue;" >${tcr}</h5></div>
+					<div class="col-md-12"><h5 style="color:#5bc0de;" >${tcr}</h5></div>
 					<div class="col-md-12">
 						<c:choose>
 							<c:when test="${ not empty trace[tcr] and trace[tcr] ne '[ ]' }">

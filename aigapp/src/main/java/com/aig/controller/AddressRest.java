@@ -11,12 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aig.object.AddressCapsule;
+import com.aig.object.ServiceResponse;
 import com.aig.service.AddressService;
+import com.aig.service.ITdsService;
+import com.aig.util.functional.TryFactory;
 
 @RestController
 public class AddressRest {
 	
 	@Autowired private AddressService addressService;
+	@Autowired private ITdsService tdsService; 
 	
 	public static AddressCapsule [] caps = {
 			new AddressCapsule("DISNEYLAND PARIS", "WALT DISNEY COMPANY", "", "PARIS", "Île-de-France", "France"),
@@ -58,6 +62,12 @@ public class AddressRest {
 			matched.addAll( addressService.matchAddress(add) );
 		}
 		return matched;
+	}
+	
+	@GetMapping("/headergroup")
+	public ServiceResponse headerGroup(  ) {
+		//TryFactory.attempt(  )
+		return null;
 	}
 
 	
