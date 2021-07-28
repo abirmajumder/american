@@ -1,0 +1,141 @@
+package com.util;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.thymeleaf.util.StringUtils;
+
+@Component
+public class EntityGenerator {
+	
+	@Autowired @Qualifier("dataSource") DataSource ds;
+	DatabaseMetaData metaData;
+	
+	@PostConstruct
+	public void init() throws SQLException {
+		metaData = ds.getConnection().getMetaData();
+	}
+	
+	public void generateEntity() throws Exception {
+		System.out.println("Printing");
+		ResultSet rs = metaData.getSchemas();
+		while( rs.next() ) {
+			System.out.println(rs.getString(1));
+		}
+		
+		ResultSet tables = metaData.getTables(null, null, null, 
+		         new String[] {"TABLE"});
+	      //Printing the column name and size
+	      while (tables.next()) {
+	         //System.out.println("Table name: "+tables.getString("Table_NAME"));
+	         generateEntity(tables.getString("Table_NAME"));
+				/*
+				 * System.out.println("Table type: "+tables.getString("TABLE_TYPE"));
+				 * System.out.println("Table schema: "+tables.getString("TABLE_SCHEM"));
+				 * System.out.println("Table catalog: "+tables.getString("TABLE_CAT"));
+				 * System.out.println(" ");
+				 */
+	      }
+	      
+	      //generateEntity("patient_general");
+	      //generateEntity("age_group");
+	}
+
+	public void generateEntity( String tableName ) throws Exception {
+		String className = StringUtils.capitalize( StringUtil.toCamelCase(tableName, '_'));
+		List<String> lines = new LinkedList<>();
+		String dateImport = "";
+		lines.add("package com.app.entity;\n");
+		lines.add(dateImport);
+		lines.add("import javax.persistence.Entity;");
+		lines.add("import javax.persistence.Table;");
+		lines.add("import javax.persistence.Column;");
+		lines.add("import javax.persistence.Id;");
+		lines.add("import javax.persistence.GeneratedValue;");
+		lines.add("import javax.persistence.GenerationType;\n");
+		
+		lines.add("@Entity\n@Table( name = \"" + tableName + "\" )");
+		lines.add("public class " + className + " {\n");
+		
+		ResultSet columns = this.metaData.getColumns(null, "public", tableName, null);
+		while( columns.next() ) {
+			String columnName = columns.getString("COLUMN_NAME");
+			int type = columns.getInt("DATA_TYPE");
+			if( type ==93 ) {
+				dateImport = "import java.util.Date;";
+			}
+			int size = columns.getInt("COLUMN_SIZE");
+			addField(lines,columnName,type,size);
+		}
+		lines.add("\n}");
+		String code = lines.stream().collect(Collectors.joining("\n"));
+		write(code.getBytes(), "D:\\work\\Project\\Medical\\cliniq\\database\\generate-entity\\" + className + ".java");
+		
+		//String repo = repoStr.replaceAll("ENTITY", className);
+		//write(repo.getBytes(), "D:\\work\\Project\\Medical\\cliniq\\database\\generate-entity\\repo\\" + className + "Repository.java");
+	}
+	
+	private void write( byte [] data, String path ) throws IOException {
+		OutputStream out =  new FileOutputStream( path );
+		out.write(data);
+		out.close();
+	}
+	
+	private void addField( List<String> lines , String columnName, int type, int size ) {
+		String fieldName = StringUtil.toCamelCase(columnName, '_');
+		String varLine = "\t" + getJavaType(type) + " " + fieldName + ";";
+		String jType = getJavaType(type);
+		if( "id".equals(columnName) ) {
+			lines.add("\t@Id\r\n"
+					+ "\t@GeneratedValue(strategy = GenerationType.IDENTITY)");
+		}
+		if( "String".equals(jType) ) {
+			lines.add("\t@Column ( name = \"" + columnName + "\", length = " + size + " )");
+		} else {
+			lines.add("\t@Column ( name = \"" + columnName + "\" )");
+		}
+		
+		String getter = "\n\tpublic %s get%s() { \n\t\treturn %s;\n\t}\n"; 
+		String setter = "\tpublic void set%s( %s %s ) { \n\t\tthis.%s=%s;\n\t}\n"; 
+		lines.add(varLine);
+		
+		lines.add(String.format(getter, jType, StringUtils.capitalize(fieldName), fieldName ));
+		lines.add(String.format(setter, StringUtils.capitalize(fieldName), jType, fieldName,fieldName,fieldName ));
+		
+	}
+	
+	public String getJavaType( int sqlType ) {
+		switch (sqlType) {
+		case 4:
+		case 5: return "Integer";
+		case 93: return "Date";
+		case 8: return "Double";
+		default:
+			return "String";
+		}
+	}
+
+	String repoStr = "package com.app.repository;\r\n"
+			+ "\r\n"
+			+ "import org.springframework.data.jpa.repository.JpaRepository;\r\n"
+			+ "\r\n"
+			+ "import com.app.entity.ENTITY;\r\n"
+			+ "\r\n"
+			+ "public interface ENTITYRepository extends JpaRepository<ENTITY, Integer> {\r\n"
+			+ "	\r\n"
+			+ "}\r\n"
+			+ "";
+}
