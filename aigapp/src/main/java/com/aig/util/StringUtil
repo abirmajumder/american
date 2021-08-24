@@ -5,6 +5,8 @@ import java.util.stream.IntStream;
 
 public class StringUtil {
 
+	static BiFunction<String, Stream<String>, Stream<String>> mult  = ( s1, l2 ) -> l2.map( s2 -> s1 + "_" + s2);
+
 	public static String toCamelCase( String str, char delim ) {
 		return
 			String.valueOf(str.charAt(0)).toLowerCase() + 
@@ -28,6 +30,14 @@ public class StringUtil {
 			values[i] = field.get(obj);
 		}
 		return values;
+	}
+	
+	public static Stream<String> cross( List<String> listOne, List<String> listTwo ) {
+		return
+		 listOne.stream()
+			.map( s1 -> mult.apply(s1, listTwo.stream()) )
+			.reduce( ( a1,a2 ) -> Stream.concat(a1, a2))
+			.get();
 	}
 	
 }
